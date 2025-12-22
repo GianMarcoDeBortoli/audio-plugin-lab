@@ -1,2 +1,3 @@
-# plugin-lab
-Here is where I try to learn how to code audio plugins
+# audio-plugin-lab
+
+My playground for real-time audio-processing plugin development.
