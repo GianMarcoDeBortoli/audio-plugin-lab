@@ -1,5 +1,8 @@
+JuceLibraryCode
 build/
 .DS_Store
+.vscode
+.cache
 *.xcodeproj
 *.vcxproj*
 *.sln
