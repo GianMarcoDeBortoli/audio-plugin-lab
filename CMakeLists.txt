@@ -28,18 +28,35 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # macOS configuration
 # ------------------------------------------------------------
 
-# Build universal binaries (Intel + Apple Silicon)
 if(APPLE)
+    # Build universal binaries (Intel + Apple Silicon)
     set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+    # Set macOS target deployment version
     set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+    # Xcode 15 linker workaround
+    # If you are using Link Time Optimisation (LTO), the new linker introduced in Xcode 15 may produce a broken binary.
+    # As a workaround, add either '-Wl,-weak_reference_mismatches,weak' or '-Wl,-ld_classic' to your linker flags.
+    # Once you've selected a workaround, you can add JUCE_SILENCE_XCODE_15_LINKER_WARNING to your preprocessor definitions to silence this warning.
+    set(xcode_15_linker -Wl,-ld_classic)
+endif()
+
+# Some windows specific defines
+if (WIN32)
+    set(windows_defines _USE_MATH_DEFINES WIN32_LEAN_AND_MEAN)
+endif()
+
+# Some Linux specific defines (libcurl does not link for whatever reason)
+if (LINUX)
+    set(linux_defines JUCE_USE_CURL=0 JUCE_JACK=1)
 endif()
 
 # ------------------------------------------------------------
 # Project-wide metadata (used by plugins)
 # ------------------------------------------------------------
 
-set(PROJECT_COMPANY_NAME "Gian Plugins")
-set(PROJECT_BUNDLE_ID_BASE "com.gian.audiopluginlab")
+set(PROJECT_COMPANY_NAME "AudioPluginLab")
+set(PROJECT_COMPANY_CODE "APL")
+set(PROJECT_BUNDLE_ID_BASE "com.audiopluginlab")
 
 # ------------------------------------------------------------
 # Dependencies
@@ -81,5 +98,6 @@ add_subdirectory(plugins/tvfdn)
 
 # Experimental / learning code
 if(BUILD_SANDBOX)
-    add_subdirectory(sandbox/juce-tutorial-1)
+    add_subdirectory(sandbox/smooth_parameter)
+    add_subdirectory(sandbox/delay_line)
 endif()

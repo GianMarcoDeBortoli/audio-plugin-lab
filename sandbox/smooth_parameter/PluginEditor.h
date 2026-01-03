@@ -14,11 +14,11 @@
 //==============================================================================
 /**
 */
-class PlugintemplateAudioProcessorEditor  : public juce::AudioProcessorEditor
+class SmoothParameterAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    PlugintemplateAudioProcessorEditor (PlugintemplateAudioProcessor&);
-    ~PlugintemplateAudioProcessorEditor() override;
+    SmoothParameterAudioProcessorEditor (SmoothParameterAudioProcessor&);
+    ~SmoothParameterAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -27,7 +27,13 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    PlugintemplateAudioProcessor& audioProcessor;
+    SmoothParameterAudioProcessor& audioProcessor;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugintemplateAudioProcessorEditor)
+    juce::Slider parameterValueSlider;
+    std::unique_ptr<juce::SliderParameterAttachment> parameterValueAttachment;
+
+    juce::Slider smoothingTimeSlider;
+    std::unique_ptr<juce::SliderParameterAttachment> smoothingTimeAttachment;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SmoothParameterAudioProcessorEditor)
 };

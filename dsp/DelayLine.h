@@ -1,22 +1,22 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include <vector>
 
-#include "Ramp.h"
+#include "SmoothParameter.h"
 
-namespace DSP
+namespace primitive
 {
 
 class DelayLine
 {
 public:
     DelayLine(
-        size_t maxDelaySamples,
-        size_t initDelaySamples
+        uint32_t maxDelaySamples,
+        uint32_t initDelaySamples
     );
     ~DelayLine();
 
-    // No default ctorx
+    // No default constructor
     DelayLine() = delete;
 
     // No copy semantics
@@ -30,32 +30,31 @@ public:
     // =============================================
 
     // Set the current delay time
-    void setDelay(size_t newDelaySamples);
+    void setDelay(uint32_t newDelaySamples);
 
     // =============================================
 
     // Prepare the delay line for processing
-    void prepare(double newSampleRate, int samplesPerBlock);
+    void prepare();
 
     // Clear the content of the delay buffer
     void clear();
 
-    // Fixed delay length
-    // Process single-channel sample
-    void processSample(float* outSample, const float* inSample);
+    // =============================================
 
-    // Modulated delay length (linear interpolation)
-    // Process single-channel sample
-    void processSample(float* outSample, const float* inSample, const float* modInput);
+    // Process audio sample - linear interpolation only
+    void processSample(float* outSample, const float* inSample, float modInput = 0.0f);
+
+    // Process block of audio - wrapper of processSample
+    void processBlock(float* outBlock, const float* inBlock, uint32_t numSamples, const float* modInput = nullptr);
 
 private:
     size_t delayBufferSize;
     std::vector<float> delayBuffer;
 
-    size_t currentDelaySamples;
-    DSP::Ramp delayRamp;
+    utils::SmoothParameter delayValue;
 
-    size_t currentWriteIndex;
+    size_t writeIndex;
 
     // static_assert(std::is_copy_constructible_v<DelayLine>);
     // static_assert(std::is_move_constructible_v<DelayLine>);

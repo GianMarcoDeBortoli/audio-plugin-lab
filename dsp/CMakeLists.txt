@@ -4,13 +4,13 @@
 
 add_library(dsp
     # Add DSP source files here
+    SmoothParameter.cpp
     DelayLine.cpp
-    FDN.cpp
-    Matrix.cpp
-    MultichannelAbsorption.cpp
-    MultichannelDelay.cpp
-    OnePoleFiles.cpp
-    Ramp.cpp
+    # FDN.cpp
+    # Matrix.cpp
+    # MultichannelAbsorption.cpp
+    # MultichannelDelay.cpp
+    # OnePoleFilter.cpp
 )
 
 # Public include directory for DSP headers
@@ -23,6 +23,9 @@ target_include_directories(dsp
 target_link_libraries(dsp
     PUBLIC
         Eigen3::Eigen
+        juce::juce_core
+        juce::juce_audio_basics
+        juce::juce_dsp
 )
 
 # DSP requires C++17
