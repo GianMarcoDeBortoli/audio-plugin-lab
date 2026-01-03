@@ -10,14 +10,15 @@ namespace primitive
 class DelayLine
 {
 public:
+    // Constructor
+    DelayLine() = delete;
     DelayLine(
         uint32_t maxDelaySamples,
         uint32_t initDelaySamples
     );
-    ~DelayLine();
 
-    // No default constructor
-    DelayLine() = delete;
+    // Destructor
+    ~DelayLine() = default;
 
     // No copy semantics
     DelayLine(const DelayLine&) = delete;

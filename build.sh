@@ -18,4 +18,8 @@ config=${3:-Debug}
 jobs=${4:-4}
 
 # Build command
-cmake --build build --target ${target}_${format} --config ${config} --parallel ${jobs}
+if [ "$1" = "all" ]; then
+  cmake --build build --config ${config} --parallel ${jobs}
+else
+  cmake --build build --target ${target}_${format} --config ${config} --parallel ${jobs}
+fi

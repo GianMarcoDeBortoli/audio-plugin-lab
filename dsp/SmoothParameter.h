@@ -12,8 +12,9 @@ class SmoothParameter
 public:
     // Constructors
     SmoothParameter();
+
     // Destructor
-    ~SmoothParameter();
+    ~SmoothParameter() = default;
 
     // No copy semantics
     SmoothParameter(const SmoothParameter&) = delete;

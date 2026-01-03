@@ -14,9 +14,6 @@ SmoothParameter::SmoothParameter() :
     currentValue { 0.0f }
 {}
 
-SmoothParameter::~SmoothParameter()
-{}
-
 //==================================================================================
 
 float SmoothParameter::getCurrentValue()

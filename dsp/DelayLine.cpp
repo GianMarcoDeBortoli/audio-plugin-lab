@@ -27,10 +27,6 @@ DelayLine::DelayLine(uint32_t maxDelaySamples, uint32_t initDelaySamples)
     writeIndex = size_t { 0u };
 }
 
-DelayLine::~DelayLine()
-{
-}
-
 void DelayLine::setDelay(uint32_t newDelaySamples)
 {
     assert(static_cast<size_t>(newDelaySamples) <= delayBufferSize - size_t{ 1u } && "New delay must be less than the maximum delay");
