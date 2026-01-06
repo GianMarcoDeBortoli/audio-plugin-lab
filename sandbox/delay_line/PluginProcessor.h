@@ -63,7 +63,7 @@ private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 	  void parameterChanged(const juce::String& paramID, float newValue) override;
 
-	  primitive::DelayLine delayLine;
+	  primitives::DelayLine delayLine;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayLineAudioProcessor)

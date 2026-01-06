@@ -1,4 +1,4 @@
-#include <algorithm> 
+// #include <algorithm> 
 #include <cmath>
 #include <cassert>
 
@@ -7,14 +7,14 @@
 namespace utils
 {
 
-SmoothParameter::SmoothParameter() :
-    targetValue { 0.0f },
-    smoothingSamples { minTimeInSamples },
-    smoothingStep { 0.0f },
-    currentValue { 0.0f }
+SmoothParameter::SmoothParameter(float initValue) :
+    currentValue { initValue },
+    targetValue { initValue },
+    smoothingSamples { minSmoothingSamples },
+    smoothingStep { 0.0f }
 {}
 
-//==================================================================================
+//================================================
 
 float SmoothParameter::getCurrentValue()
 {
@@ -23,7 +23,7 @@ float SmoothParameter::getCurrentValue()
 
 void SmoothParameter::setSmoothingTime(uint32_t newTimeInSamples)
 {
-    assert(newTimeInSamples >= minTimeInSamples);
+    assert(newTimeInSamples >= minSmoothingSamples);
     smoothingSamples = newTimeInSamples;
 }
 
@@ -55,14 +55,14 @@ bool SmoothParameter::needsSmoothing()
     return ((targetDelta > std::fabs(2.f * smoothingStep)) && (std::fabs(smoothingStep) > minDelta));
 }
 
-//==================================================================================
+//================================================
 
 void SmoothParameter::prepare()
 {
     SmoothParameter::setTarget(targetValue, true);
 }
 
-//==================================================================================
+//================================================
 
 void SmoothParameter::update()
 {

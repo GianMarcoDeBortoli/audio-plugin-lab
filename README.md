@@ -51,19 +51,21 @@ sudo apt install build-essential cmake
 
 ## Repository structure
 
-- **`dsp/`**: Custom DSP library, shared by all plugins.
-- **`external/`**: Contains JUCE as a git submodule.
-- **`plugins/`**: Production-ready plugins.
-- **`sandbox/`**: Experimental plugins for learning or testing ideas; optional and not intended for production.
-- **`templates/plugin/`**: Starter plugin template to copy when creating a new plugin.
+- **`dsp/`**: Custom DSP library, shared by all plugins
+- **`external/`**: Contains JUCE as a git submodule
+- **`plugins/`**: Production-ready plugins
+- **`sandbox/`**: Experimental plugins for learning or testing ideas; optional and not intended for production
+- **`templates/plugin/`**: Starter plugin template to copy when creating a new plugin
+- **`configure.sh`**: One-time configuration script that generates the build system
+- **`build.sh`**: Convenience script to build one plugin or all plugins
 
 ---
 
-## Building extisting plugins
+## Build extisting plugins
 
 To build the plugins currently in this repository, follow these steps:
 
-1. Close the repository with submodules (to get JUCE):
+1. Close the repository with submodules (to get JUCE)
     ```bash
     git clone --recurse-submodules https://github.com/GianMarcoDeBortoli/audio-plugin-lab.git
     cd audio-plugin-lab
@@ -73,32 +75,39 @@ To build the plugins currently in this repository, follow these steps:
     git submodule update --init --recursive
     ```
 
-2. Create a build directory:
+2. Configure the project (one-time)
     ```bash
-    mkdir build
-    cd build
+    ./configure.sh
     ```
+    This creates the `build/` directory and configures CMake for your platform.
 
-3. Build all plugins:
-    ```bash
-    cmake ..
-    make
-    ```
-    The first line will configure the build and generate the Makefiles for your platform for all plugins.
-    The second line will build all plugins in `plugins/` folder and all plugins in `sandbox/` folder.
-    On windows with Visual Studio you can open the generated `.sln` file and build from there.
+    You only need to rerun this step if:
+    - you delete the `build/` folder
+    - you change CMake configurations options
 
-4. Build only specific plugins:
-    ```bash
-    cmake -DBUILD_SANDBOX=OFF ..
-    make tvfdn
-    ```
-    The first line will configure the build and generate the Makefiles for your platform for only the plugins in the folder `plugins/`.
-    The second line will build only the plugin `plugins/tvfdn/`.
+3. Build plugins:
+    - Build all plugins:
+        ```bash
+        ./build.sh all
+        ```
+        This builds **all plugin targets** (including sandbox plugins) using the `Debug` configuration (default)
+
+        You can also specify the format and jobs:
+        ```bash
+        ./build.sh all [format] [config] [jobs]
+        ```
+
+    - Build a single plugin:
+        ```bash
+        ./build.sh <plugin_name> [format] [config] [jobs]
+        ```
+        This build only the requested plugin.
+
+    See `build.sh` for more details.
 
 ---
 
-## Adding a new plugin
+## Add a new plugin
 
 The folder `templates/new_plugin` contains a **starter JUCE plugin** ready to be copied and customized.
 

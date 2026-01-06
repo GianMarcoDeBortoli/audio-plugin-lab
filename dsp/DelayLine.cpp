@@ -4,10 +4,11 @@
 
 #include "DelayLine.h"
 
-namespace primitive
+namespace primitives
 {
 
-DelayLine::DelayLine(uint32_t maxDelaySamples, uint32_t initDelaySamples)
+DelayLine::DelayLine(uint32_t maxDelaySamples, uint32_t initDelaySamples) :
+    delayValue { static_cast<float>(initDelaySamples) }
 {
     // Check if the maximum delay samples is valid
     assert(maxDelaySamples > 0 && "Maximum delay of the delay line must be greater than zero");
@@ -27,11 +28,15 @@ DelayLine::DelayLine(uint32_t maxDelaySamples, uint32_t initDelaySamples)
     writeIndex = size_t { 0u };
 }
 
+//================================================
+
 void DelayLine::setDelay(uint32_t newDelaySamples)
 {
     assert(static_cast<size_t>(newDelaySamples) <= delayBufferSize - size_t{ 1u } && "New delay must be less than the maximum delay");
     delayValue.setTarget(static_cast<float>(newDelaySamples), false);
 }
+
+//================================================
 
 void DelayLine::prepare()
 {
@@ -44,6 +49,8 @@ void DelayLine::clear()
     std::fill(delayBuffer.begin(), delayBuffer.end(), 0.f);
     writeIndex = size_t { 0u };
 }
+
+//================================================
 
 void DelayLine::processSample(float* outSample, const float* inSample, float modInput /*= 0.0f*/)
 {
