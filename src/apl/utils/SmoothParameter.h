@@ -1,10 +1,12 @@
 #pragma once
 
-// #include <cstdint>
-// #include <cstddef>
+#include <cstdint>
+#include <cstddef>
 #include <type_traits>
 
-namespace utils
+namespace apl
+{
+    namespace utils
 {
 
 class SmoothParameter
@@ -27,36 +29,33 @@ public:
 
 	//================================================
 
-    // Get the current value
-    float getCurrentValue();
-
-    // Set new smoothing time
-    void setSmoothingTime(uint32_t newTimeInSamples);
-
-    // Returns the smoothing time
-    uint32_t getSmoothingTime();
-
+    // SET METHODS
+    // Set the new number of samples needed for smoothing
+    void setSmoothingInterval(uint32_t newSmoothingInterval);
     // Set the target value. Allows to skip the smoothing
     void setTarget(float newTargetValue, bool skipSmoothing = false);
 
+    // GET METHODS
+    // Returns the number of samples needed for smoothing
+    uint32_t getSmoothingInterval() const;
     // Returns the value of the target
-    float getTarget();
-
-    // Checks if the parameter needs smoothing or not
-    bool needsSmoothing();
+    float getTarget() const;
+    // Get the current value
+    float getCurrentValue() const;
 
     //================================================
-
-    // Moves the current value to the target value without smoothing
+    // STATE METHODS
+    // Checks if the parameter needs smoothing or not
+    bool isSmoothing() const;
+    // Resets the current value to the target value and sets the step size to zero
     void prepare();
-
+    
 	//================================================
-
+    // PROCESS METHODS
     // Smooths the current value towards the target value and returns it
-    float getSample();
-
+    float getNextValue();
     // Smooths the current value towards the target value across a block of given size and assigns it in place
-    void getBlock(float* block, uint32_t numSamples);
+    void getNextValues(float* block, uint32_t numSamples);
 
     //================================================
 
@@ -67,8 +66,8 @@ private:
 
     //================================================
 
-    // Minimum value for the smoothingSamples member
-    static constexpr uint32_t minSmoothingSamples { 48u };  // 1ms at 48kHz
+    // Default value for the smoothingSamples member
+    static constexpr uint32_t defaultSmoothingInterval = 48;
     // Minimum absolute difference between target and current value. Below it, no smoothing is applied
     static constexpr float minDelta { 1e-9f };
 
@@ -76,15 +75,15 @@ private:
 
     float currentValue;
     float targetValue;
-    uint32_t smoothingSamples;
-    float smoothingStep;
-
-    //================================================
-
-    static_assert(std::is_copy_constructible_v<SmoothParameter>, "SmoothParameter must be copyable");
-    static_assert(std::is_move_constructible_v<SmoothParameter>, "SmoothParameter must be movable");
-    static_assert(std::is_nothrow_move_assignable_v<SmoothParameter>, "Move assignment should not throw");
+    uint32_t smoothingInterval;
+    float stepSize;
 
 };
+
+static_assert(std::is_copy_constructible_v<SmoothParameter>, "SmoothParameter must be copyable");
+static_assert(std::is_move_constructible_v<SmoothParameter>, "SmoothParameter must be movable");
+static_assert(std::is_nothrow_move_assignable_v<SmoothParameter>, "Move assignment should not throw");
+
+}
 
 }

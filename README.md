@@ -51,59 +51,79 @@ sudo apt install build-essential cmake
 
 ## Repository structure
 
-- **`dsp/`**: Custom DSP library, shared by all plugins
+- **`src/apl/`**: Custom library, shared by all plugins
+- **`tests/`**: unit tests for custom library debug
 - **`external/`**: Contains JUCE as a git submodule
 - **`plugins/`**: Production-ready plugins
-- **`sandbox/`**: Experimental plugins for learning or testing ideas; optional and not intended for production
+- **`sandbox/`**: Experimental plugins for learning or testing ideas
 - **`templates/plugin/`**: Starter plugin template to copy when creating a new plugin
 - **`configure.sh`**: One-time configuration script that generates the build system
-- **`build.sh`**: Convenience script to build one plugin or all plugins
+- **`build.sh`**: Convenience script to build one or all plugins
+
+---
+
+## Access project
+
+1. Clone the repository
+    ```bash
+        git clone --recurse-submodules https://github.com/GianMarcoDeBortoli/audio-plugin-lab.git
+        cd audio-plugin-lab
+    ```
+
+2. Configure the project
+    ```bash
+    ./configure.sh
+    ```
+    This creates the build/ directory and generates the build system.
+    You need to rerun this step if:
+    - you delete the `build/` folder
+    - you change CMake configurations options
+
+---
+
+## Tests
+
+1. Build a test file
+    ```
+    cmake --build build --target test_delayline
+    ```
+
+2. Run the test file
+    - Run a specific test
+    ```
+    ctest --test-dir build test_file_name
+    ```
+Or run all built test files
+    ```
+    ctest --test-dir build
+    ```
+    or:
+    ```
+    ctest --test-dir build --output-on-failure
+    ```
 
 ---
 
 ## Build extisting plugins
 
-To build the plugins currently in this repository, follow these steps:
-
-1. Close the repository with submodules (to get JUCE)
+- Build all plugins:
     ```bash
-    git clone --recurse-submodules https://github.com/GianMarcoDeBortoli/audio-plugin-lab.git
-    cd audio-plugin-lab
+    ./build.sh all
     ```
-    If you already cloned the repository without submodules, you can add them manually:
+    This builds **all plugin targets** (including sandbox plugins) using the `Debug` configuration (default)
+
+    You can also specify the format and jobs:
     ```bash
-    git submodule update --init --recursive
+    ./build.sh all [format] [config] [jobs]
     ```
 
-2. Configure the project (one-time)
+- Build a single plugin:
     ```bash
-    ./configure.sh
+    ./build.sh <plugin_name> [format] [config] [jobs]
     ```
-    This creates the `build/` directory and configures CMake for your platform.
+    This build only the requested plugin.
 
-    You only need to rerun this step if:
-    - you delete the `build/` folder
-    - you change CMake configurations options
-
-3. Build plugins:
-    - Build all plugins:
-        ```bash
-        ./build.sh all
-        ```
-        This builds **all plugin targets** (including sandbox plugins) using the `Debug` configuration (default)
-
-        You can also specify the format and jobs:
-        ```bash
-        ./build.sh all [format] [config] [jobs]
-        ```
-
-    - Build a single plugin:
-        ```bash
-        ./build.sh <plugin_name> [format] [config] [jobs]
-        ```
-        This build only the requested plugin.
-
-    See `build.sh` for more details.
+See `build.sh` for more details.
 
 ---
 

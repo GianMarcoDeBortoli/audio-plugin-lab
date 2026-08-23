@@ -21,6 +21,9 @@ project(AudioPluginLab
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Enable compile commands
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Required for shared libraries (JUCE plugins)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -81,7 +84,7 @@ add_subdirectory(external/JUCE)
 # Internal libraries
 # ------------------------------------------------------------
 
-add_subdirectory(dsp)
+add_subdirectory(src/apl)
 
 # ------------------------------------------------------------
 # Build options
@@ -101,3 +104,10 @@ if(BUILD_SANDBOX)
     add_subdirectory(sandbox/smooth_parameter)
     add_subdirectory(sandbox/delay_line)
 endif()
+
+# ------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------
+enable_testing()
+
+add_subdirectory(tests)

@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-#include <JuceHeader.h>
-
 #include "DelayLine.h"
 
 namespace DSP
@@ -55,11 +53,12 @@ private:
     double sampleRate { 48000.0 };
 
     uint32_t delayLinesNumber;
-    std::vector<DSP::DelayLine> delayLines;
+    std::vector<primitives::DelayLine> delayLines;
 
-    // static_assert(std::is_copy_constructible_v<MultichannelDelay>);
-    // static_assert(std::is_move_constructible_v<MultichannelDelay>);
-    static_assert(std::is_nothrow_move_assignable_v<MultichannelDelay>);
 };
+
+// static_assert(std::is_copy_constructible_v<MultichannelDelay>);
+// static_assert(std::is_move_constructible_v<MultichannelDelay>);
+static_assert(std::is_nothrow_move_assignable_v<MultichannelDelay>);
 
 }

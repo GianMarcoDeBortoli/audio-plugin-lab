@@ -2,29 +2,29 @@
 
 // #include <cstdint>
 // #include <cstddef>
-#include <type_traits>
+// #include <type_traits>
 
 #include "SmoothParameter.h"
 
-namespace primitives
+namespace generator
 {
 
-class Oscillator
+class Waveform
 {
 public:
     // Constructor
-    Oscillator() = delete;
-    explicit Oscillator(float initFrequency);
+    Waveform() = delete;
+    explicit Waveform(float initFrequency);
 
     // Destructor -> default
 
     // Copy
-    Oscillator(const Oscillator&) = default;
-    Oscillator& operator=(const Oscillator&) = default;
+    Waveform(const Waveform&) = default;
+    Waveform& operator=(const Waveform&) = default;
 
     // Move
-    Oscillator(Oscillator&&) = default;
-    Oscillator& operator=(Oscillator&&) = default;
+    Waveform(Waveform&&) = default;
+    Waveform& operator=(Waveform&&) = default;
 
     //================================================
     

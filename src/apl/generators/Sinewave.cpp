@@ -2,12 +2,12 @@
 
 #include <cassert>
 
-#include "Oscillator.h"
+#include "Sinewave.h"
 
 namespace primitives
 {
 
-Oscillator::Oscillator(float initFrequency) :
+Sinewave::Sinewave(float initFrequency) :
     frequency { initFrequency }
 {
     amplitude.setSmoothingTime( uint32_t { 200u } );
@@ -15,7 +15,7 @@ Oscillator::Oscillator(float initFrequency) :
 
 //================================================
 
-void Oscillator::setFrequency(float newFrequency)
+void Sinewave::setFrequency(float newFrequency)
 {
     assert(newFrequency > 0.0f);
     frequency = newFrequency;
@@ -23,28 +23,28 @@ void Oscillator::setFrequency(float newFrequency)
 
 //================================================
 
-void Oscillator::prepare()
+void Sinewave::prepare()
 {
 
 }
 
 //================================================
 
-void Oscillator::fadeOut()
+void Sinewave::fadeOut()
 {
 
 }
 
-void Oscillator::fadeIn()
+void Sinewave::fadeIn()
 {
 
 }
 
-void Oscillator::processBlock(float* outBlock, float* inBlock, uint32_t numSamples)
+void Sinewave::processBlock(float* outBlock, float* inBlock, uint32_t numSamples)
 {
     for (uint32_t n = 0; n < numSamples; n++)
     {
-        Oscillator::processSample(&outBlock[n], &inBlock[n]);
+        Sinewave::processSample(&outBlock[n], &inBlock[n]);
     }
 }
 

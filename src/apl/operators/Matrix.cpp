@@ -1,12 +1,14 @@
 #include "Matrix.h"
-#include <cstdint>
+
+#include <algorithm> 
+#include <cassert>
 
 namespace DSP
 {
 
 Matrix::Matrix(int initDim)
 {
-    jassert(initDim >= 0 && "Matrix dimension must be greater than or equal to zero");
+    assert( initDim >= 0 && "Matrix dimension must be greater than or equal to zero" );
     dim1 = initDim;
     dim2 = initDim;
     matrix = genRandomOrthogonal(dim1);
@@ -14,7 +16,7 @@ Matrix::Matrix(int initDim)
 
 Matrix::Matrix(int initDim1, int initDim2)
 {
-    jassert(initDim1 >= 0 && initDim2 >= 0 && "Matrix dimensions must be greater than or equal to zero");
+    assert( initDim1 >= 0 && initDim2 >= 0 && "Matrix dimensions must be greater than or equal to zero" );
     dim1 = initDim1;
     dim2 = initDim2;
     matrix = genRandomCoupling(dim1, dim2);
@@ -47,7 +49,7 @@ Eigen::MatrixXf Matrix::genRandomCoupling(int dim1, int dim2)
 
 void Matrix::setDimensions(int newDim)
 {
-    jassert(newDim >= 0 && "Matrix dimension must be greater than or equal to zero");
+    assert( newDim >= 0 && "Matrix dimension must be greater than or equal to zero" );
     dim1 = newDim;
     dim2 = newDim;
     matrix = genRandomOrthogonal(dim1);
@@ -55,7 +57,7 @@ void Matrix::setDimensions(int newDim)
 
 void Matrix::setDimensions(int newDim1, int newDim2)
 {
-    jassert(newDim1 >= 0 && newDim2 >= 0 && "Matrix dimensions must be greater than or equal to zero");
+    assert( newDim1 >= 0 && newDim2 >= 0 && "Matrix dimensions must be greater than or equal to zero" );
     dim1 = newDim1;
     dim2 = newDim2;
     matrix = genRandomCoupling(dim1, dim2);
@@ -87,8 +89,8 @@ void Matrix::clear()
 
 void Matrix::processSample(float* outSamples, const float* inSamples, uint32_t numOutputChannels, uint32_t numInputChannels)
 {
-    jassert(numInputChannels == dim2 && "Number of channels must match the matrix dimension");
-    jassert(numOutputChannels == dim1 && "Number of channels must match the matrix dimension");
+    assert( numInputChannels == dim2 && "Number of channels must match the matrix dimension" );
+    assert( numOutputChannels == dim1 && "Number of channels must match the matrix dimension" );
 
     // Map the input samples to an Eigen matrix
     Eigen::Map<const Eigen::VectorXf> input(inSamples, numInputChannels);

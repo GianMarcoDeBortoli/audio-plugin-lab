@@ -2,5 +2,5 @@
 
 # Configure the project
 # Creates the build folder and generates Makefiles
-
-cmake -S . -B build
+set -e
+cmake -S . -B build \

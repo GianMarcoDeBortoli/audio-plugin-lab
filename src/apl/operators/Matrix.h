@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-#include <JuceHeader.h>
-
 #include <Eigen/Dense>
 
 namespace DSP
@@ -60,10 +58,10 @@ private:
     int dim1;
     int dim2;
     Eigen::MatrixXf matrix;
-
-    // static_assert(std::is_copy_constructible_v<Matrix>);
-    // static_assert(std::is_move_constructible_v<Matrix>);
-    static_assert(std::is_nothrow_move_assignable_v<Matrix>);
 };
+
+// static_assert(std::is_copy_constructible_v<Matrix>);
+// static_assert(std::is_move_constructible_v<Matrix>);
+static_assert(std::is_nothrow_move_assignable_v<Matrix>);
 
 }
