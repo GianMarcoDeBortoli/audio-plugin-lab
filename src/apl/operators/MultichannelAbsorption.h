@@ -1,59 +1,68 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
-#include <JuceHeader.h>
+#include "operators/FirstOrderShelf.h"
 
-#include "OnePoleFilter.h"
-
-namespace DSP
+namespace apl::operators
 {
 
 class MultichannelAbsorption
 {
+
 public:
-    MultichannelAbsorption(
-        uint32_t initFiltersNumber,
-        const std::vector<std::pair<float, float>>& initFiltersMagValues
-    );
-    ~MultichannelAbsorption();
 
-    // No default ctor
+    // Constructor
     MultichannelAbsorption() = delete;
+    MultichannelAbsorption(
+        uint32_t initChannels,
+        const std::vector<float> initHDC,
+        const std::vector<float> initHNY,
+        float initCrossFreq
+    );
 
-    // No copy semantics
+    // Destructor -> default
+
+    // Copy
     MultichannelAbsorption(const MultichannelAbsorption&) = delete;
     const MultichannelAbsorption& operator=(const MultichannelAbsorption&) = delete;
 
-    // No move semantics
+    // Move
     MultichannelAbsorption(MultichannelAbsorption&&) noexcept = default;
     MultichannelAbsorption& operator=(MultichannelAbsorption&&) noexcept = default;
 
     // =============================================
+    // SET METHODS
+    // Set the magnitude values
+    void setDCMagnitudeValue(const std::vector<float> newHCD);
+    void setNYMagnitudeValue(const std::vector<float> newHNY);
+    // Set the crossover frequency value
+    void setCrossFrequency(float crossFreq);
 
-    // Set the filter coefficients (SOS) for the filters
-    void setFiltersMagnitudeValues(const std::vector<std::pair<float, float>>& newFiltersMagValues);
-
-    // =============================================
-
-    // Prepare the filters for processing
-    void prepare(double newSampleRate, int samplesPerBlock);
-
+    //================================================
+    // STATE METHODS
     // Clear the contents of the filter states
     void clear();
+    // Prepare the filters for processing
+    void prepare();
 
-    // Process multi-channel sample
+    // =============================================
+    // PROCESS METHODS 
+    // Process audio sample - multichannel
     void processSample(float* outSamples, const float* inSamples, uint32_t numChannels);
 
+    //================================================
+
 private:
-    double sampleRate { 48000.0 };
 
-    uint32_t filtersNumber;
-    std::vector<DSP::OnePoleFilter> filters;
+    uint32_t channels;
+    std::vector<apl::operators::FirstOrderShelf> filters;
 
-    // static_assert(std::is_copy_constructible_v<MultichannelAbsorption>);
-    // static_assert(std::is_move_constructible_v<MultichannelAbsorption>);
-    static_assert(std::is_nothrow_move_assignable_v<MultichannelAbsorption>);
 };
+
+// static_assert(std::is_copy_constructible_v<MultichannelAbsorption>);
+// static_assert(std::is_move_constructible_v<MultichannelAbsorption>);
+static_assert(std::is_nothrow_move_assignable_v<MultichannelAbsorption>);
 
 }

@@ -1,42 +1,53 @@
-#include "Matrix.h"
-
-#include <algorithm> 
+#include <cmath> 
 #include <cassert>
 
-namespace DSP
+#include "operators/Matrix.h"
+
+namespace apl::operators
 {
 
-Matrix::Matrix(int initDim)
+Matrix::Matrix(int initDim) :
+    dim1 { initDim },
+    dim2 { initDim }
 {
-    assert( initDim >= 0 && "Matrix dimension must be greater than or equal to zero" );
-    dim1 = initDim;
-    dim2 = initDim;
-    matrix = genRandomOrthogonal(dim1);
+    assert( initDim >= 0
+        && "Matrix dimension must be greater than or equal to zero" );
+
+    matrix = Matrix::renderMatrix();
 }
 
-Matrix::Matrix(int initDim1, int initDim2)
+Matrix::Matrix(int initDim1, int initDim2) :
+    dim1 { initDim1 },
+    dim2 { initDim2 }
 {
-    assert( initDim1 >= 0 && initDim2 >= 0 && "Matrix dimensions must be greater than or equal to zero" );
-    dim1 = initDim1;
-    dim2 = initDim2;
-    matrix = genRandomCoupling(dim1, dim2);
+    assert( initDim1 >= 0 && initDim2 >= 0
+        && "Matrix dimensions must be greater than or equal to zero" );
+
+    matrix = Matrix::renderMatrix();
 }
 
-Matrix::~Matrix()
+//================================================
+// SET METHODS
+void Matrix::setDimensions(int newDim) // private
 {
+    assert( newDim >= 0
+        && "Matrix dimension must be greater than or equal to zero" );
+
+    dim1 = newDim;
+    dim2 = newDim;
 }
 
-Eigen::MatrixXf Matrix::genRandomOrthogonal(int dim)
+void Matrix::setDimensions(int newDim1, int newDim2) // private
 {
-    // Generate a random orthogonal square matrix
-    Eigen::MatrixXf random = Eigen::MatrixXf::Random(dim, dim);
-    // Perform QR decomposition to obtain an orthogonal matrix
-    Eigen::HouseholderQR<Eigen::MatrixXf> qr(random);
-    // Set the matrix to the orthogonal matrix obtained from QR decomposition
-    return qr.householderQ();
+    assert( newDim1 >= 0 && newDim2 >= 0
+        && "Matrix dimensions must be greater than or equal to zero" );
+
+    dim1 = newDim1;
+    dim2 = newDim2;
 }
 
-Eigen::MatrixXf Matrix::genRandomCoupling(int dim1, int dim2)
+// STATE METHODS
+Eigen::MatrixXf Matrix::renderMatrix() // private
 {
     int maxDim = std::max(dim1, dim2);
     // Generate a random matrix with specified dimensions
@@ -44,32 +55,27 @@ Eigen::MatrixXf Matrix::genRandomCoupling(int dim1, int dim2)
     // Perform QR decomposition to obtain an orthogonal matrix
     Eigen::HouseholderQR<Eigen::MatrixXf> qr(random);
     // Set the matrix to the orthogonal matrix obtained from QR decomposition
-    return Eigen::MatrixXf::Identity(dim1, maxDim) * qr.householderQ() * Eigen::MatrixXf::Identity(maxDim, dim2);
-}
+    Eigen::MatrixXf coupling =
+        Eigen::MatrixXf::Identity(dim1, maxDim)
+        * qr.householderQ()
+        * Eigen::MatrixXf::Identity(maxDim, dim2);
 
-void Matrix::setDimensions(int newDim)
-{
-    assert( newDim >= 0 && "Matrix dimension must be greater than or equal to zero" );
-    dim1 = newDim;
-    dim2 = newDim;
-    matrix = genRandomOrthogonal(dim1);
-}
+    // Scale matrix for expected-power preservation
+    if ( dim1 < dim2 )
+    {
+        float normValue = std::sqrt(dim2 / dim1);
+        coupling = normValue * coupling;
+    }
 
-void Matrix::setDimensions(int newDim1, int newDim2)
-{
-    assert( newDim1 >= 0 && newDim2 >= 0 && "Matrix dimensions must be greater than or equal to zero" );
-    dim1 = newDim1;
-    dim2 = newDim2;
-    matrix = genRandomCoupling(dim1, dim2);
+    return coupling;
 }
 
 void Matrix::prepare(int newDim)
 {   
     if (newDim != dim1 || newDim != dim2)
     {
-        dim1 = newDim;
-        dim2 = newDim;
-        setDimensions(dim1);
+        Matrix::setDimensions(newDim);
+        Matrix::renderMatrix();
     }
 }
 
@@ -77,20 +83,24 @@ void Matrix::prepare(int newDim1, int newDim2)
 {
     if (newDim1 != dim1 || newDim2 != dim2)
     {
-        dim1 = newDim1;
-        dim2 = newDim2;
-        setDimensions(newDim1, newDim2);
+        Matrix::setDimensions(newDim1, newDim2);
+        Matrix::renderMatrix();
     }
 }
 
-void Matrix::clear()
+//================================================
+// PROCESS METHODS
+void Matrix::processSample(
+    float* outSamples,
+    const float* inSamples,
+    uint32_t numOutputChannels,
+    uint32_t numInputChannels
+)
 {
-}
-
-void Matrix::processSample(float* outSamples, const float* inSamples, uint32_t numOutputChannels, uint32_t numInputChannels)
-{
-    assert( numInputChannels == dim2 && "Number of channels must match the matrix dimension" );
-    assert( numOutputChannels == dim1 && "Number of channels must match the matrix dimension" );
+    assert( numInputChannels == dim2
+        && "Number of channels must match the matrix dimension" );
+    assert( numOutputChannels == dim1
+        && "Number of channels must match the matrix dimension" );
 
     // Map the input samples to an Eigen matrix
     Eigen::Map<const Eigen::VectorXf> input(inSamples, numInputChannels);
@@ -99,6 +109,5 @@ void Matrix::processSample(float* outSamples, const float* inSamples, uint32_t n
     // Perform matrix multiplication
     output = matrix * input;
 }
-
 
 }

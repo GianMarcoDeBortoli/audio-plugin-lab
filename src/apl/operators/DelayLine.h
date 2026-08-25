@@ -8,13 +8,12 @@
 #include "utils/SmoothParameter.h"
 // #include "Waveform.h"
 
-namespace apl
-{
-    namespace operators
+namespace apl::operators
 {
 
 class DelayLine
 {
+
 public:
 
     // Constructor
@@ -43,6 +42,7 @@ public:
     // Get the current delay length
     float getDelayLength() const;
 
+    //================================================
     // STATE METHODS
     // Clear the content of the delay buffer
     void clear();
@@ -54,33 +54,34 @@ public:
     // Get the sample at the current delay value
     float getSample();
     // Set the sample at the current write pointer
-    void setSample(const float inSample);
+    void setSample(float inSample);
     // Advance write pointer
     void advancePointer();
     
-    // Process audio sample - linear interpolation only
-    float processSample(const float inSample);
+    // Process audio sample - single channel - linear interpolation only
+    float processSample(float inSample);
 
-    // Process block of audio samples - wrapper of processSample
+    // Process audio block - wrapper of processSample
     void processBlock(float* outBlock, const float* inBlock, uint32_t numSamples);
 
     //================================================
 
 private:
 
-    // Utils
     float readFromBuffer(float delay) const;
     void writeToBuffer(float sample);
+
+    //================================================
 
     // generator::WaveformSource &modSource;
     apl::utils::SmoothParameter delayLength;
     std::vector<float> delayBuffer;
     size_t pointer;
     bool hasRead;
+
 };
 
 static_assert(std::is_move_constructible_v<DelayLine>, "DelayLine must be movable");
 static_assert(std::is_nothrow_move_assignable_v<DelayLine>, "Move assignment should not throw");
 
-}
 }

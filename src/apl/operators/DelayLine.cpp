@@ -3,18 +3,19 @@
 
 #include "DelayLine.h"
 
-namespace apl
-{
-    namespace operators
+namespace apl::operators
 {
 
 DelayLine::DelayLine(size_t maxDelayLength, float initDelayLength) :
 delayLength { initDelayLength }
 {
     // Validity checks
-    assert( maxDelayLength > 0 && "Maximum delay length must be greater than zero" );
-    assert( initDelayLength >= 0.f && "Initial delay length must be greater than or equal to zero" );
-    assert( initDelayLength <= static_cast<float>(maxDelayLength) && "Initial delay length must be less than the maximum length" );
+    assert( maxDelayLength > 0
+        && "Maximum delay length must be greater than zero" );
+    assert( initDelayLength >= 0.f
+        && "Initial delay length must be greater than or equal to zero" );
+    assert( initDelayLength <= static_cast<float>(maxDelayLength)
+        && "Initial delay length must be less than the maximum length" );
 
     // Initialize the current delay with a smoothing time to the requested value
     delayLength.setSmoothingInterval(uint32_t { 1200u });
@@ -31,9 +32,13 @@ delayLength { initDelayLength }
 // SET METHODS
 void DelayLine::setDelayLength(float newDelayLength)
 {
-    assert( newDelayLength >= 0.f && "New delay length must be greater than zero" );
     const auto bufferSize = delayBuffer.size();
-    assert( newDelayLength <= static_cast<float>(bufferSize) && "New delay length must be less than the maximum length" );
+    
+    assert( newDelayLength >= 0.f
+        && "New delay length must be greater than zero" );
+    assert( newDelayLength <= static_cast<float>(bufferSize)
+        && "New delay length must be less than the maximum length" );
+    
     delayLength.setTarget(newDelayLength, false);
 }
 
@@ -93,13 +98,16 @@ float DelayLine::getSample()
 
     // Smooth current delay length towards target delay length
     const float delay = delayLength.getNextValue();
-    assert( delay >= 1.f && "Delay length inside a feedback loop must be at least one sample");
+    assert( delay >= 1.f
+        && "Delay length inside a feedback loop must be at least one sample" );
 
     // Add modulation
     // if (modSource != nullptr)
     //     delay += modSource->getNextValue();
-    // assert( delay >= 1.f && "Modulation depth is too large, delay became lower than 1.f");
-    // assert( delay <= static_cast<float>(bufferSize) && "Modulation depth is too large, delay exceeded buffer size");
+    // assert( delay >= 1.f
+    //     && "Modulation depth is too large, delay became lower than 1.f");
+    // assert( delay <= static_cast<float>(bufferSize)
+    //     && "Modulation depth is too large, delay exceeded buffer size");
     
     // Read from the buffer
     float outSample = DelayLine::readFromBuffer(delay);
@@ -109,7 +117,7 @@ float DelayLine::getSample()
     return outSample;
 }
 
-void DelayLine::setSample(const float inSample)
+void DelayLine::setSample(float inSample)
 {
     // Check that we have already read during the current process routine
     assert( hasRead == true );
@@ -128,15 +136,17 @@ void DelayLine::advancePointer()
     hasRead = false;
 }
 
-float DelayLine::processSample(const float inSample)
+float DelayLine::processSample(float inSample)
 {
     const float delay = delayLength.getNextValue();
 
     // Add modulation
     // if (modSource != nullptr)
     //     delay += modSource->getNextValue();
-    // assert( delay >= 0.f && "Modulation depth is too large, delay became negative");
-    // assert( delay <= static_cast<float>(bufferSize) && "Modulation depth is too large, delay exceeded buffer size");
+    // assert( delay >= 0.f
+    //     && "Modulation depth is too large, delay became negative");
+    // assert( delay <= static_cast<float>(bufferSize)
+    //     && "Modulation depth is too large, delay exceeded buffer size");
 
     float outSample;
 
@@ -157,10 +167,8 @@ void DelayLine::processBlock(float* outBlock, const float* inBlock, uint32_t num
     // Check feasibility
     assert( static_cast<size_t>(numSamples) <= bufferSize );
 
-    // Process one sample at a time
     for (uint32_t n = 0; n < numSamples; n++)
         outBlock[n] = DelayLine::processSample(inBlock[n]);
 }
 
-}
 }

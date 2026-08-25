@@ -4,13 +4,12 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace apl
-{
-    namespace utils
+namespace apl::utils
 {
 
 class SmoothParameter
 {
+    
 public:
 
     // Constructor
@@ -28,7 +27,6 @@ public:
     SmoothParameter& operator=(SmoothParameter&&) = default;
 
 	//================================================
-
     // SET METHODS
     // Set the new number of samples needed for smoothing
     void setSmoothingInterval(uint32_t newSmoothingInterval);
@@ -83,7 +81,5 @@ private:
 static_assert(std::is_copy_constructible_v<SmoothParameter>, "SmoothParameter must be copyable");
 static_assert(std::is_move_constructible_v<SmoothParameter>, "SmoothParameter must be movable");
 static_assert(std::is_nothrow_move_assignable_v<SmoothParameter>, "Move assignment should not throw");
-
-}
 
 }

@@ -6,10 +6,15 @@ add_library(apl
     # connectors/Recursion.cpp
     # connectors/Recursion.h
 
+    dsp/FFT.cpp
+    dsp/FFT.h
+
     # generators/Waveform.cpp
     # generators/Waveform.h
     # generators/Sinewave.cpp
     # generators/Sinewave.h
+
+    math/constants.h
             
     operators/DelayLine.cpp
     operators/DelayLine.h
@@ -28,19 +33,21 @@ add_library(apl
     utils/SmoothParameter.h
 )
 
-# Public include directory for DSP headers
+# Public include directory for apl headers
 target_include_directories(apl
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# DSP uses Eigen for linear algebra
+# Dependencies
 target_link_libraries(apl
-    PRIVATE
+    PUBLIC
         Eigen3::Eigen
+        juce_dsp
+        juce_core
 )
 
-# DSP requires C++17
+# apl requires C++17
 target_compile_features(apl
     PUBLIC
         cxx_std_17

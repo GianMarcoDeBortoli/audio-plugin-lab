@@ -2,58 +2,57 @@
 
 #include <cstdint>
 
-#include "DelayLine.h"
+#include "operators/DelayLine.h"
 
-namespace DSP
+namespace apl::operators
 {
 
 class MultichannelDelay
 {
+
 public:
+
+    // Constructor
+    MultichannelDelay() = delete;
     MultichannelDelay(
         uint32_t initDelayLinesNumber,
         const std::vector<size_t>& initDelayLinesMaxLengths,
         const std::vector<size_t>& initDelayLengths
     );
-    ~MultichannelDelay();
 
-    // No default ctor
-    MultichannelDelay() = delete;
+    // Destructor -> default
 
-    // No copy semantics
+    // Copy
     MultichannelDelay(const MultichannelDelay&) = delete;
     const MultichannelDelay& operator=(const MultichannelDelay&) = delete;
 
-    // No move semantics
+    // Move
     MultichannelDelay(MultichannelDelay&&) noexcept = default;
     MultichannelDelay& operator=(MultichannelDelay&&) noexcept = default;
 
     // =============================================
-
+    // SET METHODS
     // Set the delay time in samples of the delay lines
     void setDelayLinesLengths(const std::vector<size_t>& newDelayLinesLengths);
 
-    // =============================================
-
-    // Prepare the delay lines for processing
-    void prepare(double newSampleRate, int samplesPerBlock);
-
+    //================================================
+    // STATE METHODS
     // Clear the contents of the delay buffer
     void clear();
+    // Prepare the delay lines for processing
+    void prepare();
 
-    // Fixed delay length
-    // Process multi-channel sample
+    //==============================================
+    // PROCESS METHODS
+    // Process audio sample - multichannel
     void processSample(float* outSamples, const float* inSamples, uint32_t numChannels);
 
-    // Modulated delay length (linear interpolation)
-    // Process multi-channel sample
-    void processSample(float* outSamples, const float* inSamples, const float* modInput, uint32_t numChannels);
+    //================================================
 
 private:
-    double sampleRate { 48000.0 };
 
-    uint32_t delayLinesNumber;
-    std::vector<primitives::DelayLine> delayLines;
+    uint32_t channels;
+    std::vector<apl::operators::DelayLine> delayLines;
 
 };
 

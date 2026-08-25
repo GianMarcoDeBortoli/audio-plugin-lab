@@ -1,57 +1,77 @@
-#include "MultichannelAbsorption.h"
+#include <cassert>
 
-namespace DSP
+#include "operators/MultichannelAbsorption.h"
+
+namespace apl::operators
 {
+    
 
-MultichannelAbsorption::MultichannelAbsorption(uint32_t initFiltersNumber, const std::vector<std::pair<float, float>>& initFiltersMagValues)
+MultichannelAbsorption::MultichannelAbsorption(
+    uint32_t initChannels,
+    const std::vector<float> initHDC,
+    const std::vector<float> initHNY,
+    float initCrossFreq
+)
 {
     // Check if the number of filters is valid
-    jassert(initFiltersNumber > 0u && "Number of filters must be greater than zero");
-    filtersNumber = initFiltersNumber;
+    assert( initChannels > 0u && "Number of channels must be greater than zero" );
+    channels = initChannels;
 
     // Reserve memory for the vector of filters
-    filters.reserve(static_cast<size_t>(filtersNumber));
+    filters.reserve(static_cast<size_t>(channels));
 
     // Initialize each filter
-    jassert(initFiltersMagValues.size() == static_cast<size_t>(filtersNumber) && "Filter magnitude values size must match the number of filters");
-    for (size_t i = 0; i < static_cast<size_t>(filtersNumber); ++i)
-        filters.emplace_back(initFiltersMagValues[i].first, initFiltersMagValues[i].second);
+    assert( initHDC.size() == static_cast<size_t>(channels) && initHNY.size() == static_cast<size_t>(channels)
+        && "Filter magnitude values size must match the number of filters" );
+
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
+        filters.emplace_back(initHDC[i], initHNY[i], initCrossFreq);
 }
 
-MultichannelAbsorption::~MultichannelAbsorption()
+void MultichannelAbsorption::setDCMagnitudeValue(const std::vector<float> newHDC)
 {
+    assert( newHDC.size() == channels
+        && "New filter magnitude values size must match the number of filters");
+
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
+        filters[i].setDCMagnitudeValue(newHDC[i]);
 }
 
-void MultichannelAbsorption::setFiltersMagnitudeValues(const std::vector<std::pair<float, float>>& newFiltersMagValues)
+void MultichannelAbsorption::setNYMagnitudeValue(const std::vector<float> newHNY)
 {
-    jassert(newFiltersMagValues.size() == filtersNumber && "New filter magnitude values size must match the number of filters");
-    for (size_t i = 0; i < static_cast<size_t>(filtersNumber); ++i)
-        filters[i].setMagValues(newFiltersMagValues[i].first, newFiltersMagValues[i].second);
+    assert( newHNY.size() == channels
+        && "New filter magnitude values size must match the number of filters");
+
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
+        filters[i].setDCMagnitudeValue(newHNY[i]);
 }
 
-void MultichannelAbsorption::prepare(double newSampleRate, int samplesPerBlock)
+void MultichannelAbsorption::setCrossFrequency(float newCrossFreq)
 {
-    jassert(newSampleRate > 0.0 && "Sample rate must be greater than zero");
-    sampleRate = newSampleRate;
-
-    // Prepare each delay line for processing
-    for (size_t i = 0; i < static_cast<size_t>(filtersNumber); ++i)
-        filters[i].prepare(newSampleRate, samplesPerBlock);
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
+        filters[i].setDCMagnitudeValue(newCrossFreq);
 }
 
 void MultichannelAbsorption::clear()
 {
-    for (size_t i = 0; i < static_cast<size_t>(filtersNumber); ++i)
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
         filters[i].clear();
+}
+
+void MultichannelAbsorption::prepare()
+{
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
+        filters[i].prepare();
 }
 
 void MultichannelAbsorption::processSample(float* outSamples, const float* inSamples, uint32_t numChannels)
 {
-    jassert(numChannels == filtersNumber && "Number of channels must match the number of filters");
+    assert( numChannels == channels 
+        && "Number of channels must match the number of filters" );
 
     // Process each channel independently
     for (size_t ch = 0; ch < static_cast<size_t>(numChannels); ++ch)
-        filters[ch].processSample(&outSamples[ch], &inSamples[ch]);
+        outSamples[ch] = filters[ch].processSample(inSamples[ch]);
 }
 
 }

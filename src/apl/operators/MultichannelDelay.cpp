@@ -1,73 +1,64 @@
 #include <cassert>
 
-#include "MultichannelDelay.h"
+#include "operators/MultichannelDelay.h"
 
-namespace DSP
+namespace apl::operators
 {
 
 MultichannelDelay::MultichannelDelay(
-    uint32_t initDelayLinesNumber,
+    uint32_t initChannels,
     const std::vector<size_t>& initDelayLinesMaxLengths,
     const std::vector<size_t>& initDelayLengths
 )
 {
     // Check if the number of delay lines is valid
-    assert(initDelayLinesNumber > 0u && "Number of delay lines must be greater than zero");
-    delayLinesNumber = initDelayLinesNumber;
+    assert(initChannels > 0u
+        && "Number of delay lines must be greater than zero");
+
+    channels = initChannels;
 
     // Reserve memory for the vector of delay lines
-    delayLines.reserve(static_cast<size_t>(delayLinesNumber));
+    delayLines.reserve(static_cast<size_t>(channels));
 
     // Initialize each delay line
-    assert(initDelayLinesMaxLengths.size() == static_cast<size_t>(delayLinesNumber) && "Delay-line-length size must match the number of delay lines");
-    assert(initDelayLengths.size() == static_cast<size_t>(delayLinesNumber) && "Initial delay lengths size must match the number of delay lines");
-    for (size_t i = 0; i < static_cast<size_t>(delayLinesNumber); ++i)
-        delayLines.emplace_back(initDelayLinesMaxLengths[i], initDelayLengths[i]);
-}
+    assert(initDelayLinesMaxLengths.size() == static_cast<size_t>(channels)
+        && "Delay-line-length size must match the number of delay lines");
+    assert(initDelayLengths.size() == static_cast<size_t>(channels)
+        && "Initial delay lengths size must match the number of delay lines");
 
-MultichannelDelay::~MultichannelDelay()
-{
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
+        delayLines.emplace_back(initDelayLinesMaxLengths[i], initDelayLengths[i]);
 }
 
 void MultichannelDelay::setDelayLinesLengths(const std::vector<size_t>& newDelaysSamples)
 {
-    assert(newDelaysSamples.size() == delayLinesNumber && "New delay-line-length size must match the number of delay lines");
-    for (size_t i = 0; i < static_cast<size_t>(delayLinesNumber); ++i)
-        delayLines[i].setDelay(newDelaysSamples[i]);
+    assert(newDelaysSamples.size() == channels
+        && "New delay-line-length size must match the number of delay lines");
+
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
+        delayLines[i].setDelayLength(newDelaysSamples[i]);
 }
 
-void MultichannelDelay::prepare(double newSampleRate, int samplesPerBlock)
+void MultichannelDelay::prepare()
 {
-    assert(newSampleRate > 0.0 && "Sample rate must be greater than zero");
-    sampleRate = newSampleRate;
-
-    // Prepare each delay line for processing
-    for (size_t i = 0; i < static_cast<size_t>(delayLinesNumber); ++i)
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
         delayLines[i].prepare();
 }
 
 void MultichannelDelay::clear()
 {
-    for (size_t i = 0; i < static_cast<size_t>(delayLinesNumber); ++i)
+    for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
         delayLines[i].clear();
 }
 
 void MultichannelDelay::processSample(float* outSamples, const float* inSamples, uint32_t numChannels)
 {
-    assert(numChannels == delayLinesNumber && "Number of channels must match the number of delay lines");
+    assert(numChannels == channels
+        && "Number of channels must match the number of delay lines");
 
     // Process each channel independently
     for (size_t ch = 0; ch < static_cast<size_t>(numChannels); ++ch)
-        delayLines[ch].processSample(&outSamples[ch], &inSamples[ch]);
-}
-
-void MultichannelDelay::processSample(float* outSamples, const float* inSamples, const float* modInput, uint32_t numChannels)
-{
-    assert(numChannels == delayLinesNumber && "Number of channels must match the number of delay lines");
-
-    // Process each channel independently with modulation
-    for (size_t ch = 0; ch < static_cast<size_t>(numChannels); ++ch)
-        delayLines[ch].processSample(&outSamples[ch], &inSamples[ch]);
+        outSamples[ch] = delayLines[ch].processSample(inSamples[ch]);
 }
 
 }

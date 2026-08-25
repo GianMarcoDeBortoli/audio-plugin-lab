@@ -3,9 +3,7 @@
 
 #include "SmoothParameter.h"
 
-namespace apl
-{
-    namespace utils
+namespace apl::utils
 {
 
 SmoothParameter::SmoothParameter(float initValue) :
@@ -19,7 +17,8 @@ SmoothParameter::SmoothParameter(float initValue) :
 // SET METHODS
 void SmoothParameter::setSmoothingInterval(uint32_t newSmoothingInterval)
 {
-    assert(newSmoothingInterval > 0);
+    assert(newSmoothingInterval > 0
+        && "Smoothing interval must be positive" );
     smoothingInterval = newSmoothingInterval;
 }
 
@@ -73,7 +72,7 @@ void SmoothParameter::prepare()
 }
 
 //================================================
-// PROCESSING METHODS
+// PROCESS METHODS
 
 float SmoothParameter::getNextValue()
 {
@@ -89,5 +88,4 @@ void SmoothParameter::getNextValues(float* block, uint32_t numSamples)
     }
 }
 
-}
 }
