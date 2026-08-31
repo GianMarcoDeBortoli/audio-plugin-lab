@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cassert>
+#include <stdexcept>
 
 #include "DelayLine.h"
 
@@ -10,12 +11,12 @@ DelayLine::DelayLine(size_t maxDelayLength, float initDelayLength) :
 delayLength { initDelayLength }
 {
     // Validity checks
-    assert( maxDelayLength > 0
-        && "Maximum delay length must be greater than zero" );
-    assert( initDelayLength >= 0.f
-        && "Initial delay length must be greater than or equal to zero" );
-    assert( initDelayLength <= static_cast<float>(maxDelayLength)
-        && "Initial delay length must be less than the maximum length" );
+    if (maxDelayLength == 0)
+        throw std::invalid_argument("Maximum delay length must be greater than zero");
+    if (initDelayLength < 0.f)
+        throw std::invalid_argument("Initial delay length must be greater than or equal to zero");
+    if (initDelayLength > static_cast<float>(maxDelayLength))
+        throw std::invalid_argument("Initial delay length must be less than the maximum length");
 
     // Initialize the current delay with a smoothing time to the requested value
     delayLength.setSmoothingInterval(uint32_t { 1200u });
@@ -26,6 +27,7 @@ delayLength { initDelayLength }
     // Initialize the pointer and the flag
     pointer = size_t { 0u };
     hasRead = false;
+    hasWritten = false;
 }
 
 //================================================
@@ -34,67 +36,87 @@ void DelayLine::setDelayLength(float newDelayLength)
 {
     const auto bufferSize = delayBuffer.size();
     
-    assert( newDelayLength >= 0.f
-        && "New delay length must be greater than zero" );
-    assert( newDelayLength <= static_cast<float>(bufferSize)
-        && "New delay length must be less than the maximum length" );
+    if (newDelayLength < 0.f)
+        throw std::invalid_argument("New delay length must be greater than or equal to zero");
+    if (newDelayLength > static_cast<float>(bufferSize))
+        throw std::invalid_argument("New delay length must be less than the maximum length");
     
     delayLength.setTarget(newDelayLength, false);
 }
 
 // GET METHODS
-float DelayLine::getDelayLength() const
+float DelayLine::getDelayLength() const noexcept
 {
     return delayLength.getCurrentValue();
 }
 
 // STATE METHODS
-void DelayLine::clear()
+void DelayLine::clear() noexcept
 {
     std::fill(delayBuffer.begin(), delayBuffer.end(), 0.f);
 }
 
-void DelayLine::prepare()
+void DelayLine::prepare() noexcept
 {
     delayLength.prepare();
     DelayLine::clear();
     pointer = size_t { 0u };
     hasRead = false;
+    hasWritten = false;
 }
 
 //================================================
 // PROCESS METHODS
-float DelayLine::readFromBuffer(float delay) const // private
+float DelayLine::readFromBuffer(float delay) const noexcept // private
 {
     // Get buffer size
     const auto bufferSize = delayBuffer.size();
 
     // Interpolation ratios
     const float delayFloor { std::floor(delay) };
-    const float delayFracR {  delay - delayFloor  };
-    const float delayFracL {   1.f  - delayFracR  };
+    const float delayFracL {  delay - delayFloor  };
+    const float delayFracR {   1.f  - delayFracL  };
 
     // Pointers
-    const size_t readPointerL { (   pointer    + bufferSize - static_cast<size_t>(delayFloor)) % bufferSize };
-    const size_t readPointerR { ( readPointerL + bufferSize + static_cast<size_t>(    1u    )) % bufferSize };
+    const size_t readPointerFloor {
+        ( pointer + bufferSize - static_cast<size_t>(delayFloor))
+        % bufferSize
+    };
 
-    // Contributions
-    const float sampleL = delayBuffer[readPointerL];
-    const float sampleR = delayBuffer[readPointerR];
+    const size_t readPointerCeil {
+        ( readPointerFloor + bufferSize - 1u)
+        % bufferSize
+    };
 
-    // Interpolate samples
-    return delayFracL * sampleL + delayFracR * sampleR;
+    const float sampleFloor = delayBuffer[readPointerFloor];
+    const float sampleCeil = delayBuffer[readPointerCeil];
+
+    const float weightFloor = 1.f - (delay - delayFloor);
+    const float weightCeil = delay - delayFloor;
+
+    return weightFloor * sampleFloor + weightCeil * sampleCeil;
 }
 
-void DelayLine::writeToBuffer(float sample) // private
+void DelayLine::writeToBuffer(float sample) noexcept // private
 {
     delayBuffer[pointer] = sample;
 }
 
+void DelayLine::advance() noexcept
+{
+    const auto bufferSize = delayBuffer.size();
+    // Update pointer
+    ++pointer;
+    pointer %= bufferSize;
+}
+
 float DelayLine::getSample()
 {
-    // Check that we have not read during the current process routine already
-    assert( hasRead == false );
+    if (hasRead != false)
+        throw std::invalid_argument("DelayLine::advancePointer must be called before reading another sample");
+
+    assert (hasWritten == false
+        && "set-get-advance routine has gone wrong" );
 
     // Smooth current delay length towards target delay length
     const float delay = delayLength.getNextValue();
@@ -104,10 +126,10 @@ float DelayLine::getSample()
     // Add modulation
     // if (modSource != nullptr)
     //     delay += modSource->getNextValue();
-    // assert( delay >= 1.f
-    //     && "Modulation depth is too large, delay became lower than 1.f");
-    // assert( delay <= static_cast<float>(bufferSize)
-    //     && "Modulation depth is too large, delay exceeded buffer size");
+    // if (delay < 1.f)
+    //     throw std::invalid_argument("Modulation depth is too large, delay became lower than 1.f");
+    // if (delay > static_cast<float>(bufferSize)
+    //     throw atd::invalid_argument("Modulation depth is too large, delay exceeded buffer size");
     
     // Read from the buffer
     float outSample = DelayLine::readFromBuffer(delay);
@@ -119,24 +141,32 @@ float DelayLine::getSample()
 
 void DelayLine::setSample(float inSample)
 {
-    // Check that we have already read during the current process routine
-    assert( hasRead == true );
+    if (hasRead == false)
+        throw std::invalid_argument("DelayLine::getSample must be called before DelayLine::setSample");
+    if (hasWritten != false)
+        throw std::invalid_argument("DelayLine::advancePointer must be called before writing another sample");
 
-    // Write
     DelayLine::writeToBuffer(inSample);
+
+    hasWritten = true;
 }
 
 void DelayLine::advancePointer()
 {   
-    const auto bufferSize = delayBuffer.size();
-    // Update pointer
-    ++pointer;
-    pointer %= bufferSize;
-    // Reset flag
+    if (hasRead == false)
+        throw std::invalid_argument("DelayLine::getSample must be called before DelayLine::advancePointer");
+    if (hasWritten == false)
+        throw std::invalid_argument("DelayLine::setSample must be called before DelayLine::advancePointer");
+
+    // Advance the pointer
+    DelayLine::advance();
+
+    // Reset flags
     hasRead = false;
+    hasWritten = false;
 }
 
-float DelayLine::processSample(float inSample)
+float DelayLine::processSample(float inSample) noexcept
 {
     const float delay = delayLength.getNextValue();
 
@@ -156,18 +186,18 @@ float DelayLine::processSample(float inSample)
         outSample = DelayLine::readFromBuffer(delay);
 
     DelayLine::writeToBuffer(inSample);
-    advancePointer();
+    DelayLine::advance();
 
     return outSample;
 }
 
-void DelayLine::processBlock(float* outBlock, const float* inBlock, uint32_t numSamples)
+void DelayLine::processBlock(float* outBlock, const float* inBlock, uint32_t numSamples) noexcept
 {
     const auto bufferSize = delayBuffer.size();
     // Check feasibility
     assert( static_cast<size_t>(numSamples) <= bufferSize );
 
-    for (uint32_t n = 0; n < numSamples; n++)
+    for (uint32_t n = 0; n < numSamples; ++n)
         outBlock[n] = DelayLine::processSample(inBlock[n]);
 }
 

@@ -15,9 +15,9 @@ public:
     // Constructor
     MultichannelDelay() = delete;
     MultichannelDelay(
-        uint32_t initDelayLinesNumber,
+        uint32_t initChannels,
         const std::vector<size_t>& initDelayLinesMaxLengths,
-        const std::vector<size_t>& initDelayLengths
+        const std::vector<float>& initDelayLengths
     );
 
     // Destructor -> default
@@ -33,7 +33,7 @@ public:
     // =============================================
     // SET METHODS
     // Set the delay time in samples of the delay lines
-    void setDelayLinesLengths(const std::vector<size_t>& newDelayLinesLengths);
+    void setDelayLinesLengths(const std::vector<float>& newDelayLinesLengths);
 
     //================================================
     // STATE METHODS

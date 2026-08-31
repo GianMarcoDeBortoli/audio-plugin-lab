@@ -1,5 +1,5 @@
 #include <cmath>
-#include <cassert>
+#include <stdexcept>
 
 #include "SmoothParameter.h"
 
@@ -17,12 +17,12 @@ SmoothParameter::SmoothParameter(float initValue) :
 // SET METHODS
 void SmoothParameter::setSmoothingInterval(uint32_t newSmoothingInterval)
 {
-    assert(newSmoothingInterval > 0
-        && "Smoothing interval must be positive" );
+    if (newSmoothingInterval == 0)
+        throw std::invalid_argument("Smoothing interval must be positive" );
     smoothingInterval = newSmoothingInterval;
 }
 
-void SmoothParameter::setTarget(float newTargetValue, bool skipSmoothing)
+void SmoothParameter::setTarget(float newTargetValue, bool skipSmoothing) noexcept
 {
     targetValue = newTargetValue;
 
@@ -37,35 +37,48 @@ void SmoothParameter::setTarget(float newTargetValue, bool skipSmoothing)
 }
 
 // GET METHODS
-uint32_t SmoothParameter::getSmoothingInterval() const
+uint32_t SmoothParameter::getSmoothingInterval() const noexcept
 {
     return smoothingInterval;
 }
 
-float SmoothParameter::getTarget() const
+float SmoothParameter::getTarget() const noexcept
 {
     return targetValue;
 }
 
-float SmoothParameter::getCurrentValue() const
+float SmoothParameter::getCurrentValue() const noexcept
 {
     return currentValue;
 }
 
 // STATE METHODS
-bool SmoothParameter::isSmoothing() const
+bool SmoothParameter::isSmoothing() const noexcept
 {
-    const float targetDelta { std::fabs(targetValue - currentValue) };
-    return ((targetDelta > std::fabs(2.f * stepSize)) && (std::fabs(stepSize) > minDelta));
+    return std::fabs(targetValue - currentValue) > minDelta
+        && std::fabs(stepSize) > minDelta;
 }
 
-void SmoothParameter::update() // private
+void SmoothParameter::update() noexcept // private
 {
-    if (SmoothParameter::isSmoothing())
-        currentValue += stepSize;
+    if (!isSmoothing())
+        return;
+
+    const float nextValue = currentValue + stepSize;
+
+    // Reached or crossed the target.
+    if ((stepSize > 0.0f && nextValue >= targetValue) ||
+        (stepSize < 0.0f && nextValue <= targetValue))
+    {
+        currentValue = targetValue;
+        stepSize = 0.0f;
+        return;
+    }
+
+    currentValue = nextValue;
 }
 
-void SmoothParameter::prepare()
+void SmoothParameter::prepare() noexcept
 {
     currentValue = targetValue;
     stepSize = 0.0;
@@ -74,13 +87,13 @@ void SmoothParameter::prepare()
 //================================================
 // PROCESS METHODS
 
-float SmoothParameter::getNextValue()
+float SmoothParameter::getNextValue() noexcept
 {
     SmoothParameter::update();
     return currentValue;
 }
 
-void SmoothParameter::getNextValues(float* block, uint32_t numSamples)
+void SmoothParameter::getNextValues(float* block, uint32_t numSamples) noexcept
 {
     for (size_t n = 0; n < static_cast<size_t>(numSamples); ++n)
     {

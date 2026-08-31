@@ -22,11 +22,12 @@ public:
         int initDim2
     );
 
-    // Destructor -> default
+    // Destructor
+    ~Matrix() = default;
 
     // Copy
-    Matrix(const Matrix&) = delete;
-    const Matrix& operator=(const Matrix&) = delete;
+    Matrix(const Matrix&) = default;
+    Matrix& operator=(const Matrix&) = default;
 
     // Move
     Matrix(Matrix&&) noexcept = default;
@@ -46,7 +47,7 @@ public:
         const float* inSamples,
         uint32_t numOutputChannels,
         uint32_t numInputChannels
-    );
+    ) noexcept;
 
     //==============================================
 
@@ -57,7 +58,7 @@ private:
     void setDimensions(int newDim1, int newDim2);
 
     // Generate the matrix
-    Eigen::MatrixXf renderMatrix();
+    void renderMatrix() noexcept;
 
     //==============================================
 
@@ -67,8 +68,11 @@ private:
 
 };
 
-// static_assert(std::is_copy_constructible_v<Matrix>);
-// static_assert(std::is_move_constructible_v<Matrix>);
-static_assert(std::is_nothrow_move_assignable_v<Matrix>);
+static_assert(std::is_copy_constructible_v<Matrix>,
+    "Matrix must be copyable");
+static_assert(std::is_move_constructible_v<Matrix>,
+    "Matrix must be movable");
+static_assert(std::is_nothrow_move_assignable_v<Matrix>,
+    "Matrix move assignment should not throw");
 
 }

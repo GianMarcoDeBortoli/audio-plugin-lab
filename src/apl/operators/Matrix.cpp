@@ -1,5 +1,6 @@
 #include <cmath> 
 #include <cassert>
+#include <stdexcept>
 
 #include "operators/Matrix.h"
 
@@ -10,28 +11,28 @@ Matrix::Matrix(int initDim) :
     dim1 { initDim },
     dim2 { initDim }
 {
-    assert( initDim >= 0
-        && "Matrix dimension must be greater than or equal to zero" );
+    if (initDim <= 0)
+        throw std::invalid_argument("Matrix dimension must be greater than zero");
 
-    matrix = Matrix::renderMatrix();
+    Matrix::renderMatrix();
 }
 
 Matrix::Matrix(int initDim1, int initDim2) :
     dim1 { initDim1 },
     dim2 { initDim2 }
 {
-    assert( initDim1 >= 0 && initDim2 >= 0
-        && "Matrix dimensions must be greater than or equal to zero" );
+    if (initDim1 <= 0 || initDim2 <= 0)
+        throw std::invalid_argument("Matrix dimensions must be greater than zero" );
 
-    matrix = Matrix::renderMatrix();
+    Matrix::renderMatrix();
 }
 
 //================================================
 // SET METHODS
 void Matrix::setDimensions(int newDim) // private
 {
-    assert( newDim >= 0
-        && "Matrix dimension must be greater than or equal to zero" );
+    assert( newDim > 0
+        && "Matrix dimension must be greater than zero" );
 
     dim1 = newDim;
     dim2 = newDim;
@@ -39,15 +40,15 @@ void Matrix::setDimensions(int newDim) // private
 
 void Matrix::setDimensions(int newDim1, int newDim2) // private
 {
-    assert( newDim1 >= 0 && newDim2 >= 0
-        && "Matrix dimensions must be greater than or equal to zero" );
+    assert( newDim1 > 0 && newDim2 > 0
+        && "Matrix dimensions must be greater than zero" );
 
     dim1 = newDim1;
     dim2 = newDim2;
 }
 
 // STATE METHODS
-Eigen::MatrixXf Matrix::renderMatrix() // private
+void Matrix::renderMatrix() noexcept // private
 {
     int maxDim = std::max(dim1, dim2);
     // Generate a random matrix with specified dimensions
@@ -55,7 +56,7 @@ Eigen::MatrixXf Matrix::renderMatrix() // private
     // Perform QR decomposition to obtain an orthogonal matrix
     Eigen::HouseholderQR<Eigen::MatrixXf> qr(random);
     // Set the matrix to the orthogonal matrix obtained from QR decomposition
-    Eigen::MatrixXf coupling =
+    Eigen::MatrixXf newMatrix =
         Eigen::MatrixXf::Identity(dim1, maxDim)
         * qr.householderQ()
         * Eigen::MatrixXf::Identity(maxDim, dim2);
@@ -63,11 +64,12 @@ Eigen::MatrixXf Matrix::renderMatrix() // private
     // Scale matrix for expected-power preservation
     if ( dim1 < dim2 )
     {
-        float normValue = std::sqrt(dim2 / dim1);
-        coupling = normValue * coupling;
+        float normValue = std::sqrt(
+            static_cast<float>(dim2) / static_cast<float>(dim1));
+        newMatrix = normValue * newMatrix;
     }
 
-    return coupling;
+    matrix = newMatrix;
 }
 
 void Matrix::prepare(int newDim)
@@ -95,7 +97,7 @@ void Matrix::processSample(
     const float* inSamples,
     uint32_t numOutputChannels,
     uint32_t numInputChannels
-)
+) noexcept
 {
     assert( numInputChannels == dim2
         && "Number of channels must match the matrix dimension" );

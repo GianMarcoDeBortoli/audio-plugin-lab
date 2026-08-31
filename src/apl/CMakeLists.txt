@@ -18,16 +18,21 @@ add_library(apl
             
     operators/DelayLine.cpp
     operators/DelayLine.h
-    # operators/FDN.cpp
-    # operators/FDN.h
-    # operators/Matrix.cpp
-    # operators/Matrix.h
-    # operators/MultichannelAbsorption.cpp
-    # operators/MultichannelAbsorption.h
-    # operators/MultichannelDelay.cpp
-    # operators/MultichannelDelay.h
+    operators/Matrix.cpp
+    operators/Matrix.h
+    operators/TimeVaryingMatrix.cpp
+    operators/TimeVaryingMatrix.h
     # operators/OnePoleFilter.cpp
     # operators/OnePoleFilter.h
+    operators/FirstOrderShelf.cpp
+    operators/FirstOrderShelf.h
+    operators/MultichannelAbsorption.cpp
+    operators/MultichannelAbsorption.h
+    operators/MultichannelDelay.cpp
+    operators/MultichannelDelay.h
+
+    # operators/FDN.cpp
+    # operators/FDN.h
 
     utils/SmoothParameter.cpp
     utils/SmoothParameter.h

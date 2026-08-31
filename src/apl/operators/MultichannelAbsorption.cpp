@@ -43,13 +43,13 @@ void MultichannelAbsorption::setNYMagnitudeValue(const std::vector<float> newHNY
         && "New filter magnitude values size must match the number of filters");
 
     for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
-        filters[i].setDCMagnitudeValue(newHNY[i]);
+        filters[i].setNYMagnitudeValue(newHNY[i]);
 }
 
 void MultichannelAbsorption::setCrossFrequency(float newCrossFreq)
 {
     for (size_t i = 0; i < static_cast<size_t>(channels); ++i)
-        filters[i].setDCMagnitudeValue(newCrossFreq);
+        filters[i].setCrossoverFrequency(newCrossFreq);
 }
 
 void MultichannelAbsorption::clear()

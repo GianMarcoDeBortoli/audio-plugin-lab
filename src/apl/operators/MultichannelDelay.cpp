@@ -8,7 +8,7 @@ namespace apl::operators
 MultichannelDelay::MultichannelDelay(
     uint32_t initChannels,
     const std::vector<size_t>& initDelayLinesMaxLengths,
-    const std::vector<size_t>& initDelayLengths
+    const std::vector<float>& initDelayLengths
 )
 {
     // Check if the number of delay lines is valid
@@ -30,7 +30,7 @@ MultichannelDelay::MultichannelDelay(
         delayLines.emplace_back(initDelayLinesMaxLengths[i], initDelayLengths[i]);
 }
 
-void MultichannelDelay::setDelayLinesLengths(const std::vector<size_t>& newDelaysSamples)
+void MultichannelDelay::setDelayLinesLengths(const std::vector<float>& newDelaysSamples)
 {
     assert(newDelaysSamples.size() == channels
         && "New delay-line-length size must match the number of delay lines");
@@ -52,7 +52,9 @@ void MultichannelDelay::clear()
 }
 
 void MultichannelDelay::processSample(float* outSamples, const float* inSamples, uint32_t numChannels)
-{
+{   
+    assert(outSamples != nullptr);
+    assert(inSamples != nullptr);
     assert(numChannels == channels
         && "Number of channels must match the number of delay lines");
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <cstddef>
 #include <type_traits>
 
 namespace apl::utils
@@ -16,7 +15,8 @@ public:
     SmoothParameter() = delete;
     explicit SmoothParameter(float initValue);
 
-    // Destructor -> default
+    // Destructor
+    ~SmoothParameter() = default;
 
     // Copy
     SmoothParameter(const SmoothParameter&) = default;
@@ -31,36 +31,36 @@ public:
     // Set the new number of samples needed for smoothing
     void setSmoothingInterval(uint32_t newSmoothingInterval);
     // Set the target value. Allows to skip the smoothing
-    void setTarget(float newTargetValue, bool skipSmoothing = false);
+    void setTarget(float newTargetValue, bool skipSmoothing = false) noexcept;
 
     // GET METHODS
     // Returns the number of samples needed for smoothing
-    uint32_t getSmoothingInterval() const;
+    uint32_t getSmoothingInterval() const noexcept;
     // Returns the value of the target
-    float getTarget() const;
+    float getTarget() const noexcept;
     // Get the current value
-    float getCurrentValue() const;
+    float getCurrentValue() const noexcept;
 
     //================================================
     // STATE METHODS
     // Checks if the parameter needs smoothing or not
-    bool isSmoothing() const;
+    bool isSmoothing() const noexcept;
     // Resets the current value to the target value and sets the step size to zero
-    void prepare();
+    void prepare() noexcept;
     
 	//================================================
     // PROCESS METHODS
     // Smooths the current value towards the target value and returns it
-    float getNextValue();
+    float getNextValue() noexcept;
     // Smooths the current value towards the target value across a block of given size and assigns it in place
-    void getNextValues(float* block, uint32_t numSamples);
+    void getNextValues(float* block, uint32_t numSamples) noexcept;
 
     //================================================
 
 private:
 
     // Updates the current value by smoothing it towards the target
-    void update();
+    void update() noexcept;
 
     //================================================
 
@@ -78,8 +78,11 @@ private:
 
 };
 
-static_assert(std::is_copy_constructible_v<SmoothParameter>, "SmoothParameter must be copyable");
-static_assert(std::is_move_constructible_v<SmoothParameter>, "SmoothParameter must be movable");
-static_assert(std::is_nothrow_move_assignable_v<SmoothParameter>, "Move assignment should not throw");
+static_assert(std::is_copy_constructible_v<SmoothParameter>,
+    "SmoothParameter must be copyable");
+static_assert(std::is_move_constructible_v<SmoothParameter>,
+    "SmoothParameter must be movable");
+static_assert(std::is_nothrow_move_assignable_v<SmoothParameter>,
+    "SmoothParameter move assignment should not throw");
 
 }

@@ -7,6 +7,23 @@
 namespace apl::operators
 {
 
+size_t getFFTOrder(size_t dimension)
+{
+    if (dimension == 0 || (dimension & (dimension - 1)) != 0)
+        throw std::invalid_argument(
+            "TimeVaryingMatrix dimension must be a positive power of two"
+        );
+
+    size_t order = 0;
+    while (dimension > 1)
+    {
+        dimension >>= 1;
+        ++order;
+    }
+
+    return order;
+}
+
 TimeVaryingMatrix::TimeVaryingMatrix(
     size_t dimension,
     float initCyclesPerSample,
@@ -19,11 +36,9 @@ TimeVaryingMatrix::TimeVaryingMatrix(
     baseDepth { initDepth },
     baseSpread { initSpread },
     numOscillators { dimension / 2 - 1 },
-    fft { static_cast<size_t>(std::log2(dimension)) }
+    fft { getFFTOrder(dimension) }
 {
     // Validate values
-    if (dimension == 0 || (dimension & (dimension - 1)) != 0)
-        throw std::invalid_argument("TimeVaryingMatrix order must be a positive power of two");
     if (initDepth < 0 || initDepth > 1)
         throw std::invalid_argument("Modulation depth must be between 0 and 1");
     if (initSpread < 0 || initSpread > 1)
@@ -45,7 +60,7 @@ TimeVaryingMatrix::TimeVaryingMatrix(
         depthValues[i] = baseDepth * (1.f + baseSpread * spreadDist(rng));
     }
 
-    fftBuffer.resize(dimension);
+    fftBuffer.resize(2 * dimension);
 }
 
 void TimeVaryingMatrix::reset()
@@ -69,7 +84,7 @@ void TimeVaryingMatrix::processSample(
     for (size_t i = 0; i < dimension; ++i)
         fftBuffer[i] = input[i];
 
-    fft.rfft(fftBuffer.data());
+    fft.rfft(fftBuffer.data(), fftBuffer.size());
 
     for (size_t k = 1; k < dimension / 2; ++k)
     {
@@ -83,16 +98,16 @@ void TimeVaryingMatrix::processSample(
         const float c = std::cos(angle);
         const float s = std::sin(angle);
 
-        const float real = fft.getBinReal( fftBuffer.data(), k );
-        const float imag = fft.getBinImag( fftBuffer.data(), k );
+        const float real = fft.getBinReal( fftBuffer.data(), fftBuffer.size(), k );
+        const float imag = fft.getBinImag( fftBuffer.data(), fftBuffer.size(), k );
 
         const float newReal = c * real - s * imag;
         const float newImag = s * real + c * imag;
 
-        fft.setBinValue( fftBuffer.data(), k, newReal, newImag );
+        fft.setBinValue( fftBuffer.data(), fftBuffer.size(), k, newReal, newImag );
     }
 
-    fft.irfft(fftBuffer.data());
+    fft.irfft(fftBuffer.data(), fftBuffer.size());
 
     for (size_t i = 0; i < dimension; ++i)
         output[i] = fftBuffer[i];

@@ -68,6 +68,8 @@ set(PROJECT_BUNDLE_ID_BASE "com.audiopluginlab")
 include(FetchContent)
 
 # --- Eigen (header-only linear algebra library) ---
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
 FetchContent_Declare(
     eigen
     GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
@@ -75,6 +77,9 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(eigen)
+
+# Re-enable testing for our project
+set(BUILD_TESTING ON CACHE BOOL "" FORCE)
 
 # --- JUCE ---
 # JUCE is provided as a git submodule under external/JUCE
@@ -97,12 +102,12 @@ option(BUILD_SANDBOX "Build experimental sandbox targets" ON)
 # ------------------------------------------------------------
 
 # Production plugins
-add_subdirectory(plugins/tvfdn)
+add_subdirectory(plugins/tvfdn EXCLUDE_FROM_ALL)
 
 # Experimental / learning code
 if(BUILD_SANDBOX)
-    add_subdirectory(sandbox/smooth_parameter)
-    add_subdirectory(sandbox/delay_line)
+    add_subdirectory(sandbox/smooth_parameter EXCLUDE_FROM_ALL)
+    add_subdirectory(sandbox/delay_line EXCLUDE_FROM_ALL)
 endif()
 
 # ------------------------------------------------------------

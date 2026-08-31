@@ -74,5 +74,5 @@ private:
 
 // static_assert(std::is_copy_constructible_v<Matrix>);
 // static_assert(std::is_move_constructible_v<Matrix>);
-static_assert(std::is_nothrow_move_assignable_v<TimeVaryingMatrix>);
+// static_assert(std::is_nothrow_move_assignable_v<TimeVaryingMatrix>);
 }

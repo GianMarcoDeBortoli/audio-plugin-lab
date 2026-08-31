@@ -1,5 +1,6 @@
 #pragma once
 
+#include "operators/TimeVaryingMatrix.h"
 #include "utils/SmoothParameter.h"
 
 namespace apl::operators
@@ -18,11 +19,12 @@ public:
         float initCrossFreq
     );
 
-    // Destructor -> default
+    // Destructor
+    ~FirstOrderShelf() = default;
 
     // Copy
-    FirstOrderShelf(const FirstOrderShelf&);
-    const FirstOrderShelf& operator=(const FirstOrderShelf&);
+    FirstOrderShelf(const FirstOrderShelf&) = default;
+    FirstOrderShelf& operator=(const FirstOrderShelf&) = default;
 
     // Move
     FirstOrderShelf(FirstOrderShelf&&) noexcept = default;
@@ -39,25 +41,24 @@ public:
     // =============================================
     // STATE METHODS
     // Clear content of internal buffer
-    void clear();
+    void clear() noexcept;
     // Prepare filter for processing
-    void prepare();
+    void prepare() noexcept;
 
     // =============================================
     // Process audio sample - single channel
-    float processSample(float inSample);
+    float processSample(float inSample) noexcept;
     // Process audio block - single channel
-    void processBlock(float* outBlock, const float* inBlock, uint32_t numSamples);
+    void processBlock(float* outBlock, const float* inBlock, uint32_t numSamples) noexcept;
 
     // =============================================
 
 private:
 
     // Compute the filter coefficients
-    void computeCoefficients();
+    void computeCoefficients() noexcept;
 
     // =============================================
-
     // Filter coefficients
     apl::utils::SmoothParameter b0;
     apl::utils::SmoothParameter b1;
@@ -65,14 +66,20 @@ private:
     // State
     float HDC;
     float HNY;
-    float crossFreq;
+    float crossAngularFreq;
     float prevInput;
     float prevOutput;
+
+    // =============================================
+    static constexpr float pi = apl::math::constants::pi;
     
 };
 
-static_assert(std::is_copy_constructible_v<FirstOrderShelf>, "FirstOrderShelf must be copiable");
-static_assert(std::is_move_constructible_v<FirstOrderShelf>, "FirstOrderShelf must be movable");
-static_assert(std::is_nothrow_move_assignable_v<FirstOrderShelf>, "Move assingment should not throw");
+static_assert(std::is_copy_constructible_v<FirstOrderShelf>,
+    "FirstOrderShelf must be copiable");
+static_assert(std::is_move_constructible_v<FirstOrderShelf>,
+    "FirstOrderShelf must be movable");
+static_assert(std::is_nothrow_move_assignable_v<FirstOrderShelf>,
+    "Move assingment should not throw");
 
 }
