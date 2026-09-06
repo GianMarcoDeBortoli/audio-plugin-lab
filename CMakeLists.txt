@@ -40,7 +40,7 @@ if(APPLE)
     # If you are using Link Time Optimisation (LTO), the new linker introduced in Xcode 15 may produce a broken binary.
     # As a workaround, add either '-Wl,-weak_reference_mismatches,weak' or '-Wl,-ld_classic' to your linker flags.
     # Once you've selected a workaround, you can add JUCE_SILENCE_XCODE_15_LINKER_WARNING to your preprocessor definitions to silence this warning.
-    set(xcode_15_linker -Wl,-ld_classic)
+    # set(xcode_15_linker -Wl,-ld_classic)
 endif()
 
 # Some windows specific defines
@@ -102,7 +102,7 @@ option(BUILD_SANDBOX "Build experimental sandbox targets" ON)
 # ------------------------------------------------------------
 
 # Production plugins
-add_subdirectory(plugins/tvfdn EXCLUDE_FROM_ALL)
+add_subdirectory(plugins/tvfdn)
 
 # Experimental / learning code
 if(BUILD_SANDBOX)

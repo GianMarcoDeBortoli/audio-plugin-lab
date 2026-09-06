@@ -2,12 +2,9 @@
 #include "PluginEditor.h"
 
 FDNPluginAudioProcessorEditor::FDNPluginAudioProcessorEditor(FDNPluginAudioProcessor& p) :
-    AudioProcessorEditor(&p), audioProcessor(p),
-    genericParameterEditor(audioProcessor.getParameterManager())
+    AudioProcessorEditor(&p),
+    audioProcessor(p)
 {
-    addAndMakeVisible(genericParameterEditor);
-    const int numOfParams { static_cast<int>(audioProcessor.getParameterManager().getParameters().size()) };
-    setSize(300, numOfParams * genericParameterEditor.parameterWidgetHeight);
 }
 
 FDNPluginAudioProcessorEditor::~FDNPluginAudioProcessorEditor()
@@ -22,5 +19,4 @@ void FDNPluginAudioProcessorEditor::paint(juce::Graphics& g)
 
 void FDNPluginAudioProcessorEditor::resized()
 {
-    genericParameterEditor.setBounds(getLocalBounds());
 }

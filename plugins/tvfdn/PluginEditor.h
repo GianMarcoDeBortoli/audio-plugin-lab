@@ -14,7 +14,6 @@ public:
 
 private:
     FDNPluginAudioProcessor& audioProcessor;
-    mrta::GenericParameterEditor genericParameterEditor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FDNPluginAudioProcessorEditor)
 };

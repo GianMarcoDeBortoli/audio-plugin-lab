@@ -2,72 +2,18 @@
 
 #include <JuceHeader.h>
 #include <Eigen/Dense>
+#include <memory>
 
-#include "Ramp.h"
-#include "Matrix.h"
-#include "FDN.h"
+#include "operators/Matrix.h"
+#include "operators/MultichannelDelay.h"
+#include "operators/MultichannelAbsorption.h"
+#include "operators/TimeVaryingMatrix.h"
 
-namespace Param
-{
-    namespace ID
-    {
-        static const juce::String Enabled { "enabled" };
-        static const juce::String Mix { "mix" };
+#include "ParameterManager.h"
 
-        static const juce::String fdnOrder { "fdnOrder" };
 
-        static const juce::String revT60 { "revT60" };
-        static const juce::String revBrightness { "revBrightness" };
-    }
-
-    namespace Name
-    {
-        static const juce::String Enabled { "Enabled" };
-        static const juce::String Mix { "Mix" };
-
-        static const juce::String fdnOrder { "FDN Order" };
-
-        static const juce::String revT60 { "Size" };
-        static const juce::String revBrightness { "Brightness" };
-    }
-
-    namespace Ranges
-    {
-        static constexpr bool EnabledDefault { true };
-        static const juce::String EnabledOff { "Off" };
-        static const juce::String EnabledOn { "On" };
-
-        static constexpr float MixDefault { 0.5f };
-        static constexpr float MixMin { 0.f };
-        static constexpr float MixMax { 1.f };
-        static constexpr float MixInc { 0.01f };
-        static constexpr float MixSkw { 0.5f };
-
-        static const juce::StringArray fdnOrders { "4", "8", "16" };
-
-        static constexpr float T60Default { 4.f };
-        static constexpr float T60Min { 0.1f };
-        static constexpr float T60Max { 10.f };
-        static constexpr float T60Inc { 0.1f };
-        static constexpr float T60Skw { 0.5f };
-
-        static constexpr float BrightnessDefault { 0.5f };
-        static constexpr float BrightnessMin { 0.f };
-        static constexpr float BrightnessMax { 1.f };
-        static constexpr float BrightnessInc { 0.01f };
-        static constexpr float BrightnessSkw { 0.5f };
-    }
-
-    namespace Units
-    {
-        static const juce::String Seconds { "s" };
-        static const juce::String Milliseconds { "ms" };
-        static const juce::String Hz { "Hz" };
-        static const juce::String dB { "dB" };
-    }
-}
-
-class FDNPluginAudioProcessor : public juce::AudioProcessor
+class FDNPluginAudioProcessor : public juce::AudioProcessor,
+                                public juce::AudioProcessorValueTreeState::Listener
 {
 public:
     FDNPluginAudioProcessor();
@@ -79,8 +25,6 @@ public:
 
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-
-    mrta::ParameterManager& getParameterManager() { return parameterManager; }
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -95,29 +39,54 @@ public:
     void setCurrentProgram (int index) override;
     const juce::String getProgramName (int index) override;
     void changeProgramName (int index, const juce::String& newName) override;
+
+    //==============================================================================
+    juce::AudioProcessorValueTreeState parameters;
+
     //==============================================================================
 
-    static const unsigned int MaxChannels { 2 };
-
 private:
+
+    std::vector<float> initializeDelayLengths(std::mt19937 &rng) const;
+
+    std::vector<std::pair<float, float>> computeAbsorptionMagValues(
+        float T60DC,
+        float brightness,
+        double sampleRate
+    ) const;
+    void setAbsorptionMagValues(std::vector<std::pair<float, float>> newAbsorptionMagValues);
+
+    //==============================================================================
     double sampleRate { 48000.0 };
-    
-    mrta::ParameterManager parameterManager;
 
-    DSP::Ramp enableRamp;
-    float enabled { 1.f };
-
-    DSP::Ramp mixRamp;
-    float mix;
-
+    //==============================================================================
     uint32_t fdnOrder;
-    juce::AudioBuffer<float> fdnBuffer;
-    DSP::Matrix fdnInputCoupling;
-    DSP::FDN fdn;
-    DSP::Matrix fdnOutputCoupling;
+    apl::operators::Matrix inputCoupling;
+    std::unique_ptr<apl::operators::MultichannelDelay> delayLines;
+    std::unique_ptr<apl::operators::MultichannelAbsorption> absorptionFilters;
+    apl::operators::Matrix feedbackMatrix;
+    apl::operators::TimeVaryingMatrix tvMatrix;
+    std::mt19937 rng { (static_cast<unsigned int>(std::time(nullptr))) };
+    apl::operators::Matrix outputCoupling;
 
+    //==============================================================================
+    std::vector<float> inputFrame;
+    std::vector<float> delaysInFrame;
+    std::vector<float> delaysOutFrame;
+    std::vector<float> absorptionOutFrame;
+    std::vector<float> tvMatrixOutFrame;
+    std::vector<float> feedbackMatrixOutFrame;
+    std::vector<float> outputFrame;
+
+    //==============================================================================
     float revT60;
     float revBrightness;
+    bool tvEnabled;
+    std::vector<float> initDelayLengths;
 
+    //==============================================================================
+    void parameterChanged(const juce::String& paramID, float newValue) override;
+
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FDNPluginAudioProcessor)
 };

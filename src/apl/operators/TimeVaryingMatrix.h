@@ -6,6 +6,7 @@
 
 #include "math/constants.h"
 #include "dsp/FFT.h"
+#include "utils/SmoothParameter.h"
 
 namespace apl::operators
 {
@@ -32,9 +33,14 @@ public:
 
     // Move
     TimeVaryingMatrix(TimeVaryingMatrix&&) noexcept = default;
-    TimeVaryingMatrix& operator=(TimeVaryingMatrix&&) noexcept = default;
+    TimeVaryingMatrix& operator=(TimeVaryingMatrix&&) noexcept = delete;
 
     // =============================================
+    // SET METHODS
+    void setCyclesPerSample(float newCyclesPerSample);
+    void setDepth(float newDepth);
+    void setSpread(float newSpread);
+
     // STATE METHODS
     void reset();
     void prepare();
@@ -51,16 +57,23 @@ public:
 
 private:
 
+    void setModulationParameters() noexcept;
+
+    //==============================================
     static constexpr float pi = apl::math::constants::pi;
 
     // High-level parameters
     size_t dimension;
-    float baseCyclesPerSample;
-    float baseDepth;
-    float baseSpread;
+    apl::utils::SmoothParameter baseCyclesPerSample;
+    apl::utils::SmoothParameter baseDepth;
+    apl::utils::SmoothParameter baseSpread;
     size_t sampleIndex{0};
 
     // Low-level parameters
+    std::mt19937& rng;
+    // Initialize distribution
+    std::uniform_real_distribution<float> phaseDist;
+    std::uniform_real_distribution<float> spreadDist;
     size_t numOscillators;
     std::vector<float> phaseValues;
     std::vector<float> freqValues;

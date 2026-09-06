@@ -35,34 +35,69 @@ TimeVaryingMatrix::TimeVaryingMatrix(
     baseCyclesPerSample { initCyclesPerSample },
     baseDepth { initDepth },
     baseSpread { initSpread },
+    rng { rng },
+    phaseDist { std::uniform_real_distribution<float> { 0.f, 2.f * pi} },
+    spreadDist { std::uniform_real_distribution<float> { -1.f, 1.f } },
     numOscillators { dimension / 2 - 1 },
     fft { getFFTOrder(dimension) }
 {
     // Validate values
-    if (initDepth < 0 || initDepth > 1)
+    if (initCyclesPerSample < 0.f || initCyclesPerSample >= 0.5f)
+        throw std::invalid_argument("Modulation frequency in cycles per sample must be between 0 and 0.5");
+    if (initDepth < 0.f || initDepth > 1.f)
         throw std::invalid_argument("Modulation depth must be between 0 and 1");
-    if (initSpread < 0 || initSpread > 1)
+    if (initSpread < 0.f || initSpread > 1.f)
         throw std::invalid_argument("Modulation spread must be between 0 and 1");
 
     phaseValues.resize(numOscillators);
     freqValues.resize(numOscillators);
     depthValues.resize(numOscillators);
 
-    // Initialize distribution
-    std::uniform_real_distribution<float> phaseDist(0.f, 2.f * pi);
-    std::uniform_real_distribution<float> spreadDist(-1.f, 1.f );
-
     // Draw from distributions
-    for (size_t i = 0; i < numOscillators; ++i)
-    {
-        phaseValues[i] = phaseDist(rng);
-        freqValues[i] = baseCyclesPerSample * (1.f + baseSpread * spreadDist(rng));
-        depthValues[i] = baseDepth * (1.f + baseSpread * spreadDist(rng));
-    }
+    TimeVaryingMatrix::setModulationParameters();
 
     fftBuffer.resize(2 * dimension);
 }
 
+// SET METHODS
+void TimeVaryingMatrix::setCyclesPerSample(float newCyclesPerSample)
+{
+    if (newCyclesPerSample < 0.f || newCyclesPerSample >= 0.5f)
+        throw std::invalid_argument("Modulation frequency in cycles per sample must be between 0 and 0.5");
+
+    baseCyclesPerSample.setTarget(newCyclesPerSample);
+    TimeVaryingMatrix::setModulationParameters();
+}
+
+void TimeVaryingMatrix::setDepth(float newDepth)
+{
+    if (newDepth < 0 || newDepth > 1)
+        throw std::invalid_argument("Modulation depth must be between 0 and 1");
+
+    baseDepth.setTarget(newDepth);
+    TimeVaryingMatrix::setModulationParameters();
+}
+
+void TimeVaryingMatrix::setSpread(float newSpread)
+{
+    if (newSpread < 0 || newSpread > 1)
+        throw std::invalid_argument("Modulation spread must be between 0 and 1");
+
+    baseSpread.setTarget(newSpread);
+    TimeVaryingMatrix::setModulationParameters();
+}
+
+void TimeVaryingMatrix::setModulationParameters() noexcept
+{
+    for (size_t i = 0; i < numOscillators; ++i)
+    {
+        phaseValues[i] = phaseDist(rng);
+        freqValues[i] = baseCyclesPerSample.getNextValue() * (1.f + baseSpread.getNextValue() * spreadDist(rng));
+        depthValues[i] = baseDepth.getNextValue() * (1.f + baseSpread.getNextValue() * spreadDist(rng));
+    }
+}
+
+// STATE METHODS
 void TimeVaryingMatrix::reset()
 {
     sampleIndex = 0;
@@ -72,7 +107,7 @@ void TimeVaryingMatrix::prepare()
 {
 }
 
-
+// PROCESS METHODS
 void TimeVaryingMatrix::processSample(
     float* output,
     const float* input
